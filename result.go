@@ -22,8 +22,9 @@ type ResultHead struct {
 	Code int
 }
 
-func (r *ResultHead) Do(ctx WebContext) {
+func (r *ResultHead) Do(ctx WebContext) error {
 	ctx.ResponseWriter().WriteHeader(r.Code)
+	return nil
 }
 
 type ResultText struct {
@@ -73,7 +74,9 @@ func (r *ResultJSON) Do(ctx WebContext) error {
 	if err != nil {
 		return err
 	}
-
+	if r.Code == 0 {
+		r.Code = 200
+	}
 	w := ctx.ResponseWriter()
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(r.Code)
