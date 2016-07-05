@@ -7,6 +7,8 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/transform"
 )
 
 type WebContext interface {
@@ -86,14 +88,18 @@ func (r *ResultJSON) Do(ctx WebContext) error {
 
 type ResultCSV struct {
 	Data [][]string
+	Attachment bool
 	Code int
 }
 
 func (r *ResultCSV) Do(ctx WebContext) error {
 	w := ctx.ResponseWriter()
 	w.Header().Set("Content-Type", "text/csv; char=utf-8")
+	if r.Attachment {
+		w.Header().Set("Content-Disposition", "attachment")
+	}
 	w.WriteHeader(r.Code)
-	csvw := csv.NewWriter(w)
+	csvw := csv.NewWriter(transform.NewWriter(w, japanese.ShiftJIS.NewEncoder()))
 	return csvw.WriteAll(r.Data)
 }
 
